@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculus Visualized — Derivatives, Integrals & Limits</title>
+    
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        /* ===== CSS Variables & Color Palette ===== */
+        :root {
+            --navy: #1a2332;
+            --paper-white: #f5f3ef;
+            --derivative-orange: #e67e22;
+            --integral-green: #27ae60;
+            --grid-line: #d0c8b8;
+            --grid-line-major: #a8a090;
+            --text-primary: #1a2332;
+            --text-secondary: #4a5568;
+            
+            /* Typography */
+            --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-body: 'Georgia', serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--paper-white);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* ===== Graph Paper Background ===== */
+        .graph-paper {
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+                linear-gradient(var(--grid-line-major) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line-major) 1px, transparent 1px);
+            background-size: 10px 10px, 10px 10px, 100px 100px, 100px 100px;
+            background-position: -1px -1px;
+        }
+
+        /* ===== Typography ===== */
+        h1, h2, h3, h4 {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        h1 { font-size: 3rem; }
+        h2 { font-size: 2.25rem; margin-bottom: 1rem; }
+        h3 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+
+        p { margin-bottom: 1rem; }
+
+        code {
+            font-family: var(--font-mono);
+            background: rgba(26, 35, 50, 0.05);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        /* ===== Navigation ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--paper-white);
+            border-bottom: 2px solid var(--navy);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-family: var(--font-heading);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--derivative-orange);
+        }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+        }
+
+        .hero h1 {
+            margin-bottom: 1rem;
+            color: var(--navy);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .hero-canvas-container {
+            width: 100%;
+            max-width: 900px;
+            height: 400px;
+            background: var(--paper-white);
+            border: 2px solid var(--navy);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #heroCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-controls {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .hero-controls label {
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+        }
+
+        .hero-controls input[type="range"] {
+            width: 150px;
+        }
+
+        /* ===== Main Content Sections ===== */
+        section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header .subtitle {
+            font-family: var(--font-heading);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* ===== Visualization Cards ===== */
+        .viz-card {
+            background: var(--paper-white);
+            border: 2px solid var(--navy);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .viz-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .viz-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .plot-area {
+            background: var(--paper-white);
+            border: 1px solid var(--grid-line-major);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plot-area canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .info-panel {
+            padding: 1rem;
+        }
+
+        .math-display {
+            font-size: 1.3rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(26, 35, 50, 0.05);
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        /* ===== Controls ===== */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(26, 35, 50, 0.03);
+            border-radius: 4px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .control-group input[type="range"] {
+            width: 200px;
+            accent-color: var(--derivative-orange);
+        }
+
+        .control-group.integral input[type="range"] {
+            accent-color: var(--integral-green);
+        }
+
+        .btn {
+            font-family: var(--font-heading);
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--navy);
+            background: var(--paper-white);
+            color: var(--navy);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--navy);
+            color: var(--paper-white);
+        }
+
+        .btn.primary {
+            background: var(--navy);
+            color: var(--paper-white);
+        }
+
+        .btn.primary:hover {
+            background: var(--derivative-orange);
+            border-color: var(--derivative-orange);
+        }
+
+        /* ===== Tooltip/Popover ===== */
+        .tooltip-trigger {
+            border-bottom: 1px dotted var(--derivative-orange);
+            cursor: help;
+            position: relative;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--navy);
+            color: var(--paper-white);
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 100;
+        }
+
+        .tooltip-trigger:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ===== Practice Problems ===== */
+        .problem-card {
+            background: var(--paper-white);
+            border: 2px solid var(--navy);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .problem-card h4 {
+            color: var(--navy);
+            margin-bottom: 1rem;
+        }
+
+        .hint-box {
+            background: rgba(39, 174, 96, 0.1);
+            border-left: 4px solid var(--integral-green);
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .hint-box.visible {
+            display: block;
+        }
+
+        /* ===== Zoom/Pan Controls ===== */
+        .zoom-controls {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            background: var(--paper-white);
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--grid-line-major);
+        }
+
+        .zoom-controls button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--navy);
+            background: var(--paper-white);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-controls button:hover {
+            background: var(--navy);
+            color: var(--paper-white);
+        }
+
+        /* ===== Footer ===== */
+        footer {
+            background: var(--navy);
+            color: var(--paper-white);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        footer p {
+            opacity: 0.8;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .flash-animation {
+            animation: flash 0.3s ease-in-out 3;
+        }
+
+        /* ===== Scroll Progress ===== */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--derivative-orange);
+            z-index: 1001;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body class="graph-paper">
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">∫ Calculus Visualized</div>
+        <ul>
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#derivatives">Derivatives</a></li>
+            <li><a href="#integrals">Integrals</a></li>
+            <li><a href="#limits">Limits</a></li>
+            <li><a href="#practice">Practice</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <h1>Understanding Calculus Through Visualization</h1>
+        <p>Explore derivatives, integrals, and limits with interactive visual proofs. See the mathematics come alive.</p>
+        
+        <div class="hero-canvas-container">
+            <canvas id="heroCanvas"></canvas>
+        </div>
+        
+        <div class="hero-controls">
+            <label for="speedSlider">Animation Speed:</label>
+            <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+            <span id="speedValue">1.0x</span>
+        </div>
+    </section>
+
+    <!-- Derivatives Section -->
+    <section id="derivatives">
+        <div class="section-header">
+            <h2>Derivatives</h2>
+            <p class="subtitle">The slope of the tangent line at any point</p>
+        </div>
+
+        <div class="viz-card">
+            <div class="math-display">
+                <span class="tooltip-trigger">
+                    f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}
+                    <span class="tooltip">The derivative is the instantaneous rate of change</span>
+                </span>
+            </div>
+
+            <div class="viz-container">
+                <div class="plot-area">
+                    <canvas id="derivCanvas"></canvas>
+                    <div class="zoom-controls">
+                        <button onclick="zoomIn('derivCanvas')">+</button>
+                        <button onclick="zoomOut('derivCanvas')">−</button>
+                        <button onclick="resetZoom('derivCanvas')">⟲</button>
+                    </div>
+                </div>
+                <div class="info-panel">
+                    <h3>Interactive Tangent Line</h3>
+                    <p>Drag the point along the curve to see how the tangent line changes. The slope of the tangent line at each point gives us the derivative.</p>
+                    
+                    <div class="math-display">
+                        f(x) = <span id="funcName">sin(x)</span><br>
+                        f'(x) = cos(x)<br>
+                        <span style="color: var(--derivative-orange);">Slope: <span id="slopeValue">0.00</span></span>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>Function:</label>
+                            <select id="funcSelect" onchange="changeFunction(this.value)">
+                                <option value="sin">sin(x)</option>
+                                <option value="cos">cos(x)</option>
+                                <option value="poly">x³ − 2x</option>
+                                <option value="exp">e^(-x²)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>X Position:</label>
+                            <input type="range" id="xSlider" min="-3.14" max="3.14" step="0.01" value="0">
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
+                        <strong>Tip:</strong> Press <code>→</code> and <code>←</code> arrow keys to step through values.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integrals Section -->
+    <section id="integrals" class="graph-paper">
+        <div class="section-header">
+            <h2>Integrals</h2>
+            <p class="subtitle">Area under the curve via Riemann sums</p>
+        </div>
+
+        <div class="viz-card">
+            <div class="math-display">
+                <span class="tooltip-trigger">
+                    \int_a^b f(x)\,dx = \lim_{n \to \infty} \sum_{i=1}^{n} f(x_i^*) \Delta x
+                    <span class="tooltip">The definite integral is the limit of Riemann sums</span>
+                </span>
+            </div>
+
+            <div class="viz-container">
+                <div class="plot-area">
+                    <canvas id="integralCanvas"></canvas>
+                    <div class="zoom-controls">
+                        <button onclick="zoomIn('integralCanvas')">+</button>
+                        <button onclick="zoomOut('integralCanvas')">−</button>
+                        <button onclick="resetZoom('integralCanvas')">⟲</button>
+                    </div>
+                </div>
+                <div class="info-panel">
+                    <h3>Riemann Sum Explorer</h3>
+                    <p>Adjust the number of rectangles to approximate the area under the curve. As n increases, the approximation becomes exact.</p>
+                    
+                    <div class="math-display">
+                        \int_0^{\pi} \sin(x)\,dx = 2<br>
+                        <span style="color: var(--integral-green);">Approximation: <span id="areaValue">0.00</span></span>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group integral">
+                            <label>Number of Rectangles (n):</label>
+                            <input type="range" id="nSlider" min="1" max="100" step="1" value="10">
+                            <span id="nValue">10</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Method:</label>
+                            <select id="methodSelect" onchange="updateIntegral()">
+                                <option value="left">Left Endpoint</option>
+                                <option value="right">Right Endpoint</option>
+                                <option value="mid">Midpoint</option>
+                                <option value="trap">Trapezoidal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn primary" style="margin-top: 1rem;" onclick="animateRiemann()">
+                        Animate Convergence
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Limits Section -->
+    <section id="limits">
+        <div class="section-header">
+            <h2>Limits</h2>
+            <p class="subtitle">The ε-δ definition visualized</p>
+        </div>
+
+        <div class="viz-card">
+            <div class="math-display">
+                <span class="tooltip-trigger">
+                    \forall \varepsilon > 0, \exists \delta > 0 : |x - c| < \delta \implies |f(x) - L| < \varepsilon
+                    <span class="tooltip">For every ε, there exists a δ that satisfies the condition</span>
+                </span>
+            </div>
+
+            <div class="viz-container">
+                <div class="plot-area">
+                    <canvas id="limitCanvas"></canvas>
+                    <div class="zoom-controls">
+                        <button onclick="zoomIn('limitCanvas')">+</button>
+                        <button onclick="zoomOut('limitCanvas')">−</button>
+                        <button onclick="resetZoom('limitCanvas')">⟲</button>
+                    </div>
+                </div>
+                <div class="info-panel">
+                    <h3>ε-δ Challenge</h3>
+                    <p>Drag the ε band (horizontal green region). Find the corresponding δ (vertical orange region) that keeps the function within ε of the limit L.</p>
+                    
+                    <div class="math-display">
+                        \lim_{x \to 2} (2x + 1) = 5<br>
+                        <span style="color: var(--integral-green);">ε = <span id="epsilonValue">0.50</span></span><br>
+                        <span style="color: var(--derivative-orange);">δ = <span id="deltaValue">0.25</span></span>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group integral">
+                            <label>ε (epsilon):</label>
+                            <input type="range" id="epsilonSlider" min="0.1" max="2" step="0.05" value="0.5">
+                        </div>
+                        <div class="control-group derivative">
+                            <label>δ (delta):</label>
+                            <input type="range" id="deltaSlider" min="0.05" max="1" step="0.01" value="0.25">
+                        </div>
+                    </div>
+
+                    <button class="btn" style="margin-top: 1rem;" onclick="checkEpsilonDelta()">
+                        Verify ✓
+                    </button>
+                    <p id="verifyResult" style="margin-top: 0.5rem; font-weight: 600;"></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Practice Section -->
+    <section id="practice" class="graph-paper">
+        <div class="section-header">
+            <h2>Practice Problems</h2>
+            <p class="subtitle">Apply what you've learned</p>
+        </div>
+
+        <div class="problem-card">
+            <h4>Problem 1: Finding Derivatives</h4>
+            <p>Given <code>f(x) = x² + 3x</code>, find <code>f'(2)</code>.</p>
+            
+            <div class="math-display">
+                f'(x) = \boxed{?}
+            </div>
+
+            <input type="text" placeholder="Your answer..." style="padding: 0.5rem; border: 1px solid var(--navy); border-radius: 4px; font-family: var(--font-mono); width: 200px;">
+            
+            <div style="margin-top: 1rem;">
+                <button class="btn" onclick="toggleHint('hint1')">Show Hint</button>
+                <button class="btn primary" onclick="checkAnswer('problem1', '7')">Submit</button>
+            </div>
+
+            <div id="hint1" class="hint-box">
+                <strong>Hint:</strong> Use the power rule: <code>d/dx[xⁿ] = n·xⁿ⁻¹</code>. Then evaluate at x = 2.
+            </div>
+        </div>
+
+        <div class="problem-card">
+            <h4>Problem 2: Definite Integral</h4>
+            <p>Calculate <code>∫₀² (3x² + 1) dx</code>.</p>
+            
+            <div class="math-display">
+                \int_0^2 (3x^2 + 1)\,dx = \boxed{?}
+            </div>
+
+            <input type="text" placeholder="Your answer..." style="padding: 0.5rem; border: 1px solid var(--navy); border-radius: 4px; font-family: var(--font-mono); width: 200px;">
+            
+            <div style="margin-top: 1rem;">
+                <button class="btn" onclick="toggleHint('hint2')">Show Hint</button>
+                <button class="btn primary" onclick="checkAnswer('problem2', '10')">Submit</button>
+            </div>
+
+            <div id="hint2" class="hint-box">
+                <strong>Hint:</strong> Find the antiderivative first: <code>x³ + x</code>. Then use the Fundamental Theorem of Calculus.
+            </div>
+        </div>
+
+        <div class="problem-card">
+            <h4>Problem 3: Limit Evaluation</h4>
+            <p>Evaluate <code>limₓ→₀ (sin x)/x</code>.</p>
+            
+            <div class="math-display">
+                \lim_{x \to 0} \frac{\sin x}{x} = \boxed{?}
+            </div>
+
+            <input type="text" placeholder="Your answer..." style="padding: 0.5rem; border: 1px solid var(--navy); border-radius: 4px; font-family: var(--font-mono); width: 200px;">
+            
+            <div style="margin-top: 1rem;">
+                <button class="btn" onclick="toggleHint('hint3')">Show Hint</button>
+                <button class="btn primary" onclick="checkAnswer('problem3', '1')">Submit</button>
+            </div>
+
+            <div id="hint3" class="hint-box">
+                <strong>Hint:</strong> This is a fundamental limit. Try using L'Hôpital's rule or the squeeze theorem.
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>Calculus Visualized — Making rigorous mathematics beautiful and intuitive.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Built with KaTeX • Interactive Canvas Visualizations</p>
+    </footer>
+
+    <script>
+        // ===== Initialize KaTeX =====
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ]
+            });
+        });
+
+        // ===== Scroll Progress =====
+        window.addEventListener('scroll', () => {
+            const progress = document.getElementById('scrollProgress');
+            const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+            progress.style.width = scrolled + '%';
+        });
+
+        // ===== Canvas Utilities =====
+        function setupCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Set actual size in memory (scaled to account for extra pixel density)
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * 2;
+            canvas.height = rect.height * 2;
+            ctx.scale(2, 2);
+            
+            return { canvas, ctx, width: rect.width, height: rect.height };
+        }
+
+        function clearCanvas(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+        }
+
+        function drawGrid(ctx, width, height, scale = 40, offsetX = 0, offsetY = 0) {
+            ctx.strokeStyle = '#d0c8b8';
+            ctx.lineWidth = 0.5;
+            
+            // Minor grid lines
+            for (let x = offsetX % scale; x < width; x += scale) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = offsetY % scale; y < height; y += scale) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Major grid lines
+            ctx.strokeStyle = '#a8a090';
+            ctx.lineWidth = 1;
+            const majorScale = scale * 2.5;
+            for (let x = offsetX % majorScale; x < width; x += majorScale) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = offsetY % majorScale; y < height; y += majorScale) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Axes
+            ctx.strokeStyle = '#1a2332';
+            ctx.lineWidth = 2;
+            const centerX = width / 2 + offsetX;
+            const centerY = height / 2 + offsetY;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+        }
+
+        function toGraphCoords(x, y, width, height, scale = 40) {
+            return {
+                x: width / 2 + x * scale,
+                y: height / 2 - y * scale
+            };
+        }
+
+        function toCartesianCoords(screenX, screenY, width, height, scale = 40) {
+            return {
+                x: (screenX - width / 2) / scale,
+                y: (height / 2 - screenY) / scale
+            };
+        }
+
+        // ===== Function Definitions =====
+        const functions = {
+            sin: { f: x => Math.sin(x), df: x => Math.cos(x), name: 'sin(x)' },
+            cos: { f: x => Math.cos(x), df: x => -Math.sin(x), name: 'cos(x)' },
+            poly: { f: x => x*x*x - 2*x, df: x => 3*x*x - 2, name: 'x³ − 2x' },
+            exp: { f: x => Math.exp(-x*x), df: x => -2*x*Math.exp(-x*x), name: 'e^(-x²)' },
+            linear: { f: x => 2*x + 1, df: x => 2, name: '2x + 1' }
+        };
+
+        let currentFunc = functions.sin;
+
+        // ===== Hero Animation =====
+        const heroState = {
+            t: 0,
+            speed: 1
+        };
+
+        function animateHero() {
+            const { ctx, width, height } = setupCanvas('heroCanvas');
+            const scale = 50;
+            
+            clearCanvas(ctx, width, height);
+            drawGrid(ctx, width, height, scale);
+            
+            // Draw sin(x) curve
+            ctx.strokeStyle = '#1a2332';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let px = 0; px < width; px++) {
+                const x = (px - width / 2) / scale;
+                const y = Math.sin(x + heroState.t);
+                const coords = toGraphCoords(x, y, width, height, scale);
+                
+                if (px === 0) ctx.moveTo(coords.x, coords.y);
+                else ctx.lineTo(coords.x, coords.y);
+            }
+            ctx.stroke();
+            
+            // Draw tangent line at moving point
+            const pointX = Math.sin(heroState.t) * 0.5;
+            const pointY = Math.sin(pointX + heroState.t);
+            const slope = Math.cos(pointX + heroState.t);
+            
+            const graphPoint = toGraphCoords(pointX, pointY, width, height, scale);
+            
+            // Tangent line
+            ctx.strokeStyle = '#e67e22';
+            ctx.lineWidth = 2;
+            const tangentLength = 2;
+            const tangentStart = toGraphCoords(pointX - tangentLength, pointY - slope * tangentLength, width, height, scale);
+            const tangentEnd = toGraphCoords(pointX + tangentLength, pointY + slope * tangentLength, width, height, scale);
+            
+            ctx.beginPath();
+            ctx.moveTo(tangentStart.x, tangentStart.y);
+            ctx.lineTo(tangentEnd.x, tangentEnd.y);
+            ctx.stroke();
+            
+            // Point on curve
+            ctx.fillStyle = '#e67e22';
+            ctx.beginPath();
+            ctx.arc(graphPoint.x, graphPoint.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Update animation
+            heroState.t += 0.02 * heroState.speed;
+            requestAnimationFrame(animateHero);
+        }
+
+        // ===== Derivatives Visualization =====
+        const derivState = {
+            x: 0,
+            scale: 40,
+            offsetX: 0,
+            offsetY: 0,
+            isDragging: false
+        };
+
+        function drawDerivatives() {
+            const { ctx, width, height } = setupCanvas('derivCanvas');
+            const scale = derivState.scale;
+            
+            clearCanvas(ctx, width, height);
+            drawGrid(ctx, width, height, scale, derivState.offsetX, derivState.offsetY);
+            
+            // Draw function curve
+            ctx.strokeStyle = '#1a2332';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let px = 0; px < width; px++) {
+                const x = (px - width / 2 - derivState.offsetX) / scale;
+                const y = currentFunc.f(x);
+                const coords = toGraphCoords(x, y, width, height, scale);
+                
+                if (px === 0) ctx.moveTo(coords.x, coords.y);
+                else ctx.lineTo(coords.x, coords.y);
+            }
+            ctx.stroke();
+            
+            // Draw derivative curve (scaled for visibility)
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            
+            for (let px = 0; px < width; px++) {
+                const x = (px - width / 2 - derivState.offsetX) / scale;
+                const y = currentFunc.df(x) * 0.5; // Scale down for visibility
+                const coords = toGraphCoords(x, y, width, height, scale);
+                
+                if (px === 0) ctx.moveTo(coords.x, coords.y);
+                else ctx.lineTo(coords.x, coords.y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw tangent line
+            const x = derivState.x;
+            const y = currentFunc.f(x);
+            const slope = currentFunc.df(x);
+            
+            const graphPoint = toGraphCoords(x, y, width, height, scale);
+            
+            ctx.strokeStyle = '#e67e22';
+            ctx.lineWidth = 2;
+            const tangentLength = 1.5;
+            const tangentStart = toGraphCoords(x - tangentLength, y - slope * tangentLength, width, height, scale);
+            const tangentEnd = toGraphCoords(x + tangentLength, y + slope * tangentLength, width, height, scale);
+            
+            ctx.beginPath();
+            ctx.moveTo(tangentStart.x, tangentStart.y);
+            ctx.lineTo(tangentEnd.x, tangentEnd.y);
+            ctx.stroke();
+            
+            // Draw point
+            ctx.fillStyle = '#e67e22';
+            ctx.beginPath();
+            ctx.arc(graphPoint.x, graphPoint.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Update slope display
+            document.getElementById('slopeValue').textContent = slope.toFixed(2);
+            
+            requestAnimationFrame(drawDerivatives);
+        }
+
+        function changeFunction(funcName) {
+            currentFunc = functions[funcName];
+            document.getElementById('funcName').textContent = currentFunc.name;
+        }
+
+        // ===== Integrals Visualization =====
+        const integralState = {
+            n: 10,
+            scale: 40,
+            method: 'left'
+        };
+
+        function drawIntegrals() {
+            const { ctx, width, height } = setupCanvas('integralCanvas');
+            const scale = integralState.scale;
+            const n = integralState.n;
+            const method = integralState.method;
+            
+            clearCanvas(ctx, width, height);
+            drawGrid(ctx, width, height, scale);
+            
+            const a = 0, b = Math.PI;
+            const deltaX = (b - a) / n;
+            
+            // Draw rectangles
+            ctx.fillStyle = 'rgba(39, 174, 96, 0.3)';
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 1;
+            
+            let totalArea = 0;
+            
+            for (let i = 0; i < n; i++) {
+                let x;
+                if (method === 'left') x = a + i * deltaX;
+                else if (method === 'right') x = a + (i + 1) * deltaX;
+                else if (method === 'mid') x = a + (i + 0.5) * deltaX;
+                
+                const height_val = Math.sin(x);
+                totalArea += height_val * deltaX;
+                
+                const leftCoord = toGraphCoords(a + i * deltaX, 0, width, height, scale);
+                const rightCoord = toGraphCoords(a + (i + 1) * deltaX, 0, width, height, scale);
+                const topCoord = toGraphCoords(x, height_val, width, height, scale);
+                
+                const rectWidth = rightCoord.x - leftCoord.x;
+                const rectHeight = leftCoord.y - topCoord.y;
+                
+                ctx.fillRect(leftCoord.x, topCoord.y, rectWidth, rectHeight);
+                ctx.strokeRect(leftCoord.x, topCoord.y, rectWidth, rectHeight);
+            }
+            
+            // Draw sin(x) curve
+            ctx.strokeStyle = '#1a2332';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let px = 0; px < width; px++) {
+                const x = (px - width / 2) / scale;
+                if (x >= -1 && x <= 4) {
+                    const y = Math.sin(x);
+                    const coords = toGraphCoords(x, y, width, height, scale);
+                    
+                    if (px === 0 || x < 0) ctx.moveTo(coords.x, coords.y);
+                    else ctx.lineTo(coords.x, coords.y);
+                }
+            }
+            ctx.stroke();
+            
+            // Update area display
+            document.getElementById('areaValue').textContent = totalArea.toFixed(4);
+        }
+
+        function updateIntegral() {
+            integralState.n = parseInt(document.getElementById('nSlider').value);
+            integralState.method = document.getElementById('methodSelect').value;
+            document.getElementById('nValue').textContent = integralState.n;
+            drawIntegrals();
+        }
+
+        function animateRiemann() {
+            let n = 1;
+            const interval = setInterval(() => {
+                if (n > 50) {
+                    clearInterval(interval);
+                    return;
+                }
+                integralState.n = n;
+                document.getElementById('nSlider').value = n;
+                document.getElementById('nValue').textContent = n;
+                drawIntegrals();
+                n += 2;
+            }, 100);
+        }
+
+        // ===== Limits Visualization =====
+        const limitState = {
+            epsilon: 0.5,
+            delta: 0.25,
+            scale: 40
+        };
+
+        function drawLimits() {
+            const { ctx, width, height } = setupCanvas('limitCanvas');
+            const scale = limitState.scale;
+            const c = 2, L = 5;
+            
+            clearCanvas(ctx, width, height);
+            drawGrid(ctx, width, height, scale, -50, -100);
+            
+            // Draw function f(x) = 2x + 1
+            ctx.strokeStyle = '#1a2332';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let px = 0; px < width; px++) {
+                const x = (px - width / 2 + 50) / scale;
+                const y = 2 * x + 1;
+                const coords = {
+                    x: px,
+                    y: height / 2 + 100 - y * scale
+                };
+                
+                if (px === 0) ctx.moveTo(coords.x, coords.y);
+                else ctx.lineTo(coords.x, coords.y);
+            }
+            ctx.stroke();
+            
+            // Draw ε band (green horizontal)
+            ctx.fillStyle = 'rgba(39, 174, 96, 0.2)';
+            ctx.fillRect(0, height / 2 + 100 - (L + limitState.epsilon) * scale, width, 2 * limitState.epsilon * scale);
+            
+            // Draw δ band (orange vertical)
+            ctx.fillStyle = 'rgba(230, 126, 34, 0.2)';
+            const deltaScreen = limitState.delta * scale;
+            const cScreen = width / 2 - 50 + c * scale;
+            ctx.fillRect(cScreen - deltaScreen, 0, 2 * deltaScreen, height);
+            
+            // Draw point (c, L)
+            const pointCoords = {
+                x: cScreen,
+                y: height / 2 + 100 - L * scale
+            };
+            
+            ctx.fillStyle = '#1a2332';
+            ctx.beginPath();
+            ctx.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Labels
+            ctx.font = '14px Inter, sans-serif';
+            ctx.fillStyle = '#27ae60';
+            ctx.fillText(`ε = ${limitState.epsilon.toFixed(2)}`, 10, 30);
+            ctx.fillStyle = '#e67e22';
+            ctx.fillText(`δ = ${limitState.delta.toFixed(2)}`, 10, 50);
+        }
+
+        function checkEpsilonDelta() {
+            const resultEl = document.getElementById('verifyResult');
+            const c = 2;
+            const correctDelta = limitState.epsilon / 2; // For f(x) = 2x + 1, δ = ε/2
+            
+            if (Math.abs(limitState.delta - correctDelta) < 0.05) {
+                resultEl.textContent = '✓ Correct! δ = ε/2 for this linear function.';
+                resultEl.style.color = '#27ae60';
+                document.getElementById('deltaSlider').classList.add('flash-animation');
+                setTimeout(() => {
+                    document.getElementById('deltaSlider').classList.remove('flash-animation');
+                }, 1000);
+            } else {
+                resultEl.textContent = '✗ Try again. For f(x) = 2x + 1, the relationship is δ = ε/2.';
+                resultEl.style.color = '#e74c3c';
+            }
+        }
+
+        // ===== Zoom/Pan Functions =====
+        const zoomLevels = {};
+        
+        function zoomIn(canvasId) {
+            if (!zoomLevels[canvasId]) zoomLevels[canvasId] = 40;
+            zoomLevels[canvasId] = Math.min(zoomLevels[canvasId] * 1.2, 100);
+            updateZoom(canvasId);
+        }
+        
+        function zoomOut(canvasId) {
+            if (!zoomLevels[canvasId]) zoomLevels[canvasId] = 40;
+            zoomLevels[canvasId] = Math.max(zoomLevels[canvasId] / 1.2, 20);
+            updateZoom(canvasId);
+        }
+        
+        function resetZoom(canvasId) {
+            zoomLevels[canvasId] = 40;
+            updateZoom(canvasId);
+        }
+        
+        function updateZoom(canvasId) {
+            if (canvasId === 'derivCanvas') {
+                derivState.scale = zoomLevels[canvasId];
+                drawDerivatives();
+            } else if (canvasId === 'integralCanvas') {
+                integralState.scale = zoomLevels[canvasId];
+                drawIntegrals();
+            } else if (canvasId === 'limitCanvas') {
+                limitState.scale = zoomLevels[canvasId];
+                drawLimits();
+            }
+        }
+
+        // ===== Practice Functions =====
+        function toggleHint(hintId) {
+            const hint = document.getElementById(hintId);
+            hint.classList.toggle('visible');
+        }
+
+        function checkAnswer(problemId, correctAnswer) {
+            alert('Answer checking would be implemented here. Correct answer: ' + correctAnswer);
+        }
+
+        // ===== Event Listeners =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hero speed slider
+            const speedSlider = document.getElementById('speedSlider');
+            const speedValue = document.getElementById('speedValue');
+            speedSlider.addEventListener('input', (e) => {
+                heroState.speed = parseFloat(e.target.value);
+                speedValue.textContent = heroState.speed.toFixed(1) + 'x';
+            });
+            
+            // Derivative x slider
+            const xSlider = document.getElementById('xSlider');
+            xSlider.addEventListener('input', (e) => {
+                derivState.x = parseFloat(e.target.value);
+            });
+            
+            // Keyboard navigation for derivatives
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    derivState.x = Math.min(derivState.x + 0.1, 3.14);
+                    xSlider.value = derivState.x;
+                } else if (e.key === 'ArrowLeft') {
+                    derivState.x = Math.max(derivState.x - 0.1, -3.14);
+                    xSlider.value = derivState.x;
+                }
+            });
+            
+            // Integral n slider
+            const nSlider = document.getElementById('nSlider');
+            nSlider.addEventListener('input', updateIntegral);
+            
+            // Epsilon slider
+            const epsilonSlider = document.getElementById('epsilonSlider');
+            epsilonSlider.addEventListener('input', (e) => {
+                limitState.epsilon = parseFloat(e.target.value);
+                document.getElementById('epsilonValue').textContent = limitState.epsilon.toFixed(2);
+                drawLimits();
+            });
+            
+            // Delta slider
+            const deltaSlider = document.getElementById('deltaSlider');
+            deltaSlider.addEventListener('input', (e) => {
+                limitState.delta = parseFloat(e.target.value);
+                document.getElementById('deltaValue').textContent = limitState.delta.toFixed(2);
+                drawLimits();
+            });
+            
+            // Initialize visualizations
+            animateHero();
+            drawDerivatives();
+            drawIntegrals();
+            drawLimits();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                drawDerivatives();
+                drawIntegrals();
+                drawLimits();
+            });
+        });
+    </script>
+</body>
+</html>
